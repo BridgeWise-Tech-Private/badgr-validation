@@ -1,0 +1,150 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Postman Student Community Badge Verifier
+servers:
+  - url: "https://postman-discord-role-verifier-v2-prod.glitch.me"
+paths:
+  /:
+    get:
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+  /health:
+    get:
+      summary: "Health check for the service"
+      operationId: healthCheck
+      responses:
+        "200":
+          description: "Service is healthy"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy]
+                  timestamp:
+                    type: string
+                    format: date-time
+                required:
+                  - status
+                  - timestamp
+  /validate:
+    post:
+      summary: "Checks whether a given email is eligible for Student Expert and/or Student Leader roles"
+      operationId: validate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: 
+                  type: string
+              required:
+                - email
+      responses:
+        "200":
+          description: "Valid badges found and role eligibility checked"
+          content:
+            application/json:
+              schema:
+                type: object 
+                properties:
+                  message: 
+                    type: string 
+                  requestCost:
+                    type: string
+                  rateLimitRemaining:
+                    type: string
+                required: 
+                  - message
+                  - requestCost
+                  - rateLimitRemaining
+        "403":
+          description: "Not authorized to receive roles"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          description: "Unexpected error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /validate-multiple:
+    post:
+      summary: "Checks whether multiple email addresses are eligible for Student Expert and/or Student Leader roles"
+      operationId: validateMultiple
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                emails:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - emails
+      responses:
+        "200":
+          description: "Validation results for multiple emails"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    email:
+                      type: string
+                    message:
+                      type: string
+                    requestCost:
+                      type: string
+                    rateLimitRemaining:
+                      type: string
+                  required:
+                    - email
+                    - message
+                    - requestCost
+                    - rateLimitRemaining
+        "403":
+          description: "Not authorized to receive roles"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          description: "Unexpected error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - status
+        - message
+      properties:
+        status:
+          type: string
+          enum: [error]
+        message:
+          type: string
+        errors:
+          type: array
+          items: {} # any type. This property supplied in case of request validation errors
