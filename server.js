@@ -3,11 +3,20 @@ const axios = require("axios");
 const app = express();
 const { validator } = require("./middleware/validator");
 const { handleErrors } = require("./middleware/handleErrors");
-const qs = require('qs');
+const qs = require("qs");
 
 // body parsing
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+// Middleware for API key authentication
+const authenticateApiKey = (req, res, next) => {
+  const apiKey = req.headers["x-api-key"];
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    return res.status(403).json({ status: "error", message: "Forbidden: Invalid API Key" });
+  }
+  next();
+};
 
 // apply schema validation for incoming requests
 app.use(validator);
@@ -21,14 +30,15 @@ const BADGR_API_BASE_URL = "https://api.badgr.io/v2";
 const RATE_LIMIT_DELAY = 100; // 100 ms delay between requests
 
 app.get("/", (req, res) => {
-  res.send('OK');
+  res.send("OK");
 });
 
+// Health check endpoint
 app.get("/health", (req, res) => {
-    res.status(200).send({ status: "healthy", timestamp: new Date().toISOString() });
-  });
+  res.status(200).send({ status: "healthy", timestamp: new Date().toISOString() });
+});
 
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const getAuth = async () => {
   const data = qs.stringify({
@@ -37,10 +47,10 @@ const getAuth = async () => {
   });
 
   const config = {
-    method: 'post',
+    method: "post",
     url: BADGR_AUTH_URL,
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
+      "Content-Type": "application/x-www-form-urlencoded",
     },
     data: data,
   };
@@ -51,15 +61,15 @@ const getAuth = async () => {
 
 const refreshAuthToken = async () => {
   const data = qs.stringify({
-    grant_type: 'refresh_token',
+    grant_type: "refresh_token",
     refresh_token: refreshToken,
   });
 
   const config = {
-    method: 'post',
+    method: "post",
     url: BADGR_AUTH_URL,
     headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
+      "Content-Type": "application/x-www-form-urlencoded",
     },
     data: data,
   };
@@ -95,19 +105,19 @@ const getAssertionsByEmail = async (email) => {
   const url = `${BADGR_API_BASE_URL}/issuers/${process.env.BADGR_ISSUER_PUBLIC_ID}/assertions?recipient=${emailEncoded}`;
 
   const config = {
-    method: 'get',
+    method: "get",
     url,
     headers: { Authorization: `Bearer ${token}` },
   };
 
   const response = await axios(config);
-  const requestCost = response.headers['x-request-cost'];
-  const rateLimitRemaining = response.headers['x-rate-limit-remaining'];
+  const requestCost = response.headers["x-request-cost"];
+  const rateLimitRemaining = response.headers["x-rate-limit-remaining"];
 
   return { data: response.data, requestCost, rateLimitRemaining };
 };
 
-app.post("/validate", async (req, res, next) => {
+app.post("/validate", authenticateApiKey, async (req, res, next) => {
   const { email } = req.body;
 
   try {
@@ -115,22 +125,22 @@ app.post("/validate", async (req, res, next) => {
     if (!data || !data.result) throw new Error("No response when looking up assertions");
 
     const assertions = data.result;
-    const validAssertions = assertions.filter(a => !a.revoked);
-    const validBadgeClasses = validAssertions.map(a => a.badgeclass);
+    const validAssertions = assertions.filter((a) => !a.revoked);
+    const validBadgeClasses = validAssertions.map((a) => a.badgeclass);
 
     const isStudentExpert = validBadgeClasses.includes(process.env.BADGR_STUDENT_EXPERT_BADGE_CLASS_ID);
 
     return res.send({
-      message: isStudentExpert ? 'Verified!' : 'Not Verified!',
+      message: isStudentExpert ? "Verified!" : "Not Verified!",
       requestCost,
-      rateLimitRemaining
+      rateLimitRemaining,
     });
   } catch (e) {
     return next(e);
   }
 });
 
-app.post("/validate-multiple", async (req, res, next) => {
+app.post("/validate-multiple", authenticateApiKey, async (req, res, next) => {
   const { emails } = req.body;
 
   try {
@@ -140,7 +150,7 @@ app.post("/validate-multiple", async (req, res, next) => {
       const result = await getAssertionsByEmail(email).then(({ data, requestCost, rateLimitRemaining }) => {
         if (!data || !data.result) throw new Error(`No response when looking up assertions for ${email}`);
         return { email, assertions: data.result, requestCost, rateLimitRemaining };
-      }).catch(error => {
+      }).catch((error) => {
         return { email, error: error.message };
       });
       assertionsResults.push(result);
@@ -148,15 +158,15 @@ app.post("/validate-multiple", async (req, res, next) => {
 
     const results = assertionsResults.map(({ email, assertions, error, requestCost, rateLimitRemaining }) => {
       if (error) {
-        return { email, message: 'Error occurred', error, requestCost, rateLimitRemaining };
+        return { email, message: "Error occurred", error, requestCost, rateLimitRemaining };
       }
 
-      const validAssertions = assertions.filter(a => !a.revoked);
-      const validBadgeClasses = validAssertions.map(a => a.badgeclass);
+      const validAssertions = assertions.filter((a) => !a.revoked);
+      const validBadgeClasses = validAssertions.map((a) => a.badgeclass);
 
       const isStudentExpert = validBadgeClasses.includes(process.env.BADGR_STUDENT_EXPERT_BADGE_CLASS_ID);
 
-      return { email, message: isStudentExpert ? 'Verified!' : 'Not Verified!', requestCost, rateLimitRemaining };
+      return { email, message: isStudentExpert ? "Verified!" : "Not Verified!", requestCost, rateLimitRemaining };
     });
 
     res.send(results);
