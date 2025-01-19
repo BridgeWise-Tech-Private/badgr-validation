@@ -1,80 +1,97 @@
-API Documentation: Postman Student Community Badge Verifier
-Table of Contents
-Health Check
-Validate Single Email
-Validate Multiple Emails
-Health Check
-Endpoint
-GET /health
+Here is the API documentation in **Markdown** format:
 
-Description
+---
+
+# API Documentation: Postman Student Community Badge Verifier
+
+## Table of Contents
+1. [Health Check](#health-check)
+2. [Validate Single Email](#validate-single-email)
+3. [Validate Multiple Emails](#validate-multiple-emails)
+
+---
+
+## Health Check
+
+### Endpoint
+**GET** `/health`
+
+### Description
 Check the health of the service.
 
-Response
-json
-Copy
-Edit
+### Response
+```json
 {
   "status": "healthy",
   "timestamp": "2025-01-19T12:00:00Z"
 }
-Validate Single Email
-Endpoint
-POST /validate
+```
 
-Description
+---
+
+## Validate Single Email
+
+### Endpoint
+**POST** `/validate`
+
+### Description
 Checks if a given email is eligible for Student Expert or Student Leader roles.
 
-Headers
-Key	Value	Required	Description
-x-api-key	{API_KEY}	Yes	Your API key for authorization.
-Request Body
-json
-Copy
-Edit
+### Headers
+| Key         | Value         | Required | Description           |
+|-------------|---------------|----------|-----------------------|
+| `x-api-key` | `{API_KEY}`   | Yes      | Your API key for authorization. |
+
+### Request Body
+```json
 {
   "email": "example@student.com"
 }
-Response
-Success Response (200)
-json
-Copy
-Edit
+```
+
+### Response
+#### Success Response (200)
+```json
 {
   "message": "Verified!",
   "requestCost": "0.5",
   "rateLimitRemaining": "99.5"
 }
-Error Response (403)
-json
-Copy
-Edit
+```
+
+#### Error Response (403)
+```json
 {
   "status": "error",
   "message": "Forbidden: Invalid API Key"
 }
-Validate Multiple Emails
-Endpoint
-POST /validate-multiple
+```
 
-Description
+---
+
+## Validate Multiple Emails
+
+### Endpoint
+**POST** `/validate-multiple`
+
+### Description
 Checks if multiple email addresses are eligible for Student Expert or Student Leader roles.
 
-Headers
-Key	Value	Required	Description
-x-api-key	{API_KEY}	Yes	Your API key for authorization.
-Request Body
-json
-Copy
-Edit
+### Headers
+| Key         | Value         | Required | Description           |
+|-------------|---------------|----------|-----------------------|
+| `x-api-key` | `{API_KEY}`   | Yes      | Your API key for authorization. |
+
+### Request Body
+```json
 {
   "emails": ["example1@student.com", "example2@student.com"]
 }
-Response
-Success Response (200)
-json
-Copy
-Edit
+```
+
+### Response
+#### Success Response (200)
+```json
 [
   {
     "email": "example1@student.com",
@@ -89,26 +106,34 @@ Edit
     "rateLimitRemaining": "98.5"
   }
 ]
-Error Response (403)
-json
-Copy
-Edit
+```
+
+#### Error Response (403)
+```json
 {
   "status": "error",
   "message": "Forbidden: Invalid API Key"
 }
-Error Schema
-Format
-json
-Copy
-Edit
+```
+
+---
+
+## Error Schema
+### Format
+```json
 {
   "status": "error",
   "message": "string",
   "errors": [ ... ] // Optional array of errors
 }
-Possible Errors
-Status	Message	Description
-403	Forbidden: Invalid API Key	The API key provided is invalid.
-400	Bad Request	The request body is missing or malformed.
+```
+
+### Possible Errors
+| Status | Message                    | Description                              |
+|--------|----------------------------|------------------------------------------|
+| 403    | Forbidden: Invalid API Key | The API key provided is invalid.         |
+| 400    | Bad Request                | The request body is missing or malformed.|
+
+---
+
 This documentation provides all details about the API endpoints, including request/response formats, headers, and examples. Let me know if you'd like further refinements or additions!
