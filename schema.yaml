@@ -2,11 +2,18 @@ openapi: 3.0.0
 info:
   version: 1.0.0
   title: Postman Student Community Badge Verifier
+  description: >
+    This API validates whether a given email or multiple emails are eligible
+    for the Student Expert and/or Student Leader roles based on badges. It
+    integrates with the Badgr API for badge validation.
 servers:
-  - url: "https://postman-discord-role-verifier-v2-prod.glitch.me"
+  - url: "https://<your-replit-url>.replit.co"
+    description: Production server
 paths:
   /:
     get:
+      summary: "Root endpoint"
+      description: "Returns a simple 'OK' response to indicate the API is running."
       responses:
         "200":
           description: OK
@@ -18,6 +25,7 @@ paths:
     get:
       summary: "Health check for the service"
       operationId: healthCheck
+      description: "Checks the health status of the API service."
       responses:
         "200":
           description: "Service is healthy"
@@ -37,8 +45,13 @@ paths:
                   - timestamp
   /validate:
     post:
-      summary: "Checks whether a given email is eligible for Student Expert and/or Student Leader roles"
+      summary: "Validate eligibility for a single email"
       operationId: validate
+      description: >
+        Validates whether a single email is eligible for Student Expert and/or
+        Student Leader roles based on their badge information.
+      security:
+        - ApiKeyAuth: []
       requestBody:
         required: true
         content:
@@ -52,7 +65,7 @@ paths:
                 - email
       responses:
         "200":
-          description: "Valid badges found and role eligibility checked"
+          description: "Eligibility check successful"
           content:
             application/json:
               schema:
@@ -68,10 +81,27 @@ paths:
                   - message
                   - requestCost
                   - rateLimitRemaining
+        "403":
+          description: "Invalid or missing API key"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          description: "Unexpected error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /validate-multiple:
     post:
-      summary: "Checks whether multiple email addresses are eligible for Student Expert and/or Student Leader roles"
+      summary: "Validate eligibility for multiple emails"
       operationId: validateMultiple
+      description: >
+        Validates whether multiple email addresses are eligible for Student Expert
+        and/or Student Leader roles based on their badge information.
+      security:
+        - ApiKeyAuth: []
       requestBody:
         required: true
         content:
@@ -87,7 +117,7 @@ paths:
                 - emails
       responses:
         "200":
-          description: "Validation results for multiple emails"
+          description: "Eligibility check successful for multiple emails"
           content:
             application/json:
               schema:
@@ -108,6 +138,18 @@ paths:
                     - message
                     - requestCost
                     - rateLimitRemaining
+        "403":
+          description: "Invalid or missing API key"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          description: "Unexpected error"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -128,6 +170,4 @@ components:
           type: string
         errors:
           type: array
-          items: {}
-security:
-  - ApiKeyAuth: []
+          items: {} # any type. This property supplied in case of request validation errors
