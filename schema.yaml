@@ -68,18 +68,6 @@ paths:
                   - message
                   - requestCost
                   - rateLimitRemaining
-        "403":
-          description: "Not authorized to receive roles"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        default:
-          description: "Unexpected error"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
   /validate-multiple:
     post:
       summary: "Checks whether multiple email addresses are eligible for Student Expert and/or Student Leader roles"
@@ -120,19 +108,12 @@ paths:
                     - message
                     - requestCost
                     - rateLimitRemaining
-        "403":
-          description: "Not authorized to receive roles"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        default:
-          description: "Unexpected error"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
 components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
   schemas:
     Error:
       type: object
@@ -147,4 +128,6 @@ components:
           type: string
         errors:
           type: array
-          items: {} # any type. This property supplied in case of request validation errors
+          items: {}
+security:
+  - ApiKeyAuth: []
