@@ -1,7 +1,3 @@
-Here is the API documentation in **Markdown** format:
-
----
-
 # API Documentation: Postman Student Community Badge Verifier
 
 ## Table of Contents
@@ -133,7 +129,3 @@ Checks if multiple email addresses are eligible for Student Expert or Student Le
 |--------|----------------------------|------------------------------------------|
 | 403    | Forbidden: Invalid API Key | The API key provided is invalid.         |
 | 400    | Bad Request                | The request body is missing or malformed.|
-
----
-
-This documentation provides all details about the API endpoints, including request/response formats, headers, and examples. Let me know if you'd like further refinements or additions!
